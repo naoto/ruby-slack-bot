@@ -1,0 +1,4 @@
+.bundle/
+.env
+vendor/
+.rspec_status
