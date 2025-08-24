@@ -3,11 +3,11 @@
 require 'rest-client'
 
 # Dog Plugin
-# 犬の画像を返す
+# 犬の画像を表示する
 class Dog < Plugin::Base
   def initialize(options:, logger:)
     super(options: options, logger: logger)
-    set(/^dog$/i, '犬の画像を返す') { |data:, matcher:| message(data, matcher) }
+    set(/^dog$/i, '犬の画像を表示する') { |data:, matcher:| message(data, matcher) }
   end
 
   def message(data, _)
@@ -17,6 +17,18 @@ class Dog < Plugin::Base
     resp = RestClient.get('https://dog.ceo/api/breeds/image/random')
     json = JSON.parse(resp.body)
 
-    data.say(text: json['message'])
+    blocks = [
+      {
+        "type": 'image',
+        "title": {
+          "type": 'plain_text',
+          "text": 'dog!'
+        },
+        "alt_text": 'dog!',
+        "block_id": 'image4',
+        "image_url": json['message']
+      }
+    ]
+    data.say(blocks:)
   end
 end

@@ -2,14 +2,20 @@ PATH
   remote: .
   specs:
     ruby_slack_bot (0.0.1)
+      base64
       dotenv
+      nokogiri
+      openai
       rest-client
       slack_socket_mode_bot
+      tiktoken_ruby
 
 GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.3)
+    base64 (0.3.0)
+    connection_pool (2.5.3)
     diff-lcs (1.6.2)
     domain_name (0.6.20240107)
     dotenv (3.1.8)
@@ -24,7 +30,15 @@ GEM
       logger
       mime-types-data (~> 3.2025, >= 3.2025.0507)
     mime-types-data (3.2025.0805)
+    mini_portile2 (2.8.9)
     netrc (0.11.0)
+    nokogiri (1.18.9)
+      mini_portile2 (~> 2.8.2)
+      racc (~> 1.4)
+    nokogiri (1.18.9-x86_64-linux-gnu)
+      racc (~> 1.4)
+    openai (0.17.1)
+      connection_pool
     parallel (1.27.0)
     parser (3.3.9.0)
       ast (~> 2.4.1)
@@ -33,6 +47,7 @@ GEM
     racc (1.8.1)
     rainbow (3.1.1)
     rake (13.3.0)
+    rb_sys (0.9.106)
     regexp_parser (2.11.1)
     rest-client (2.1.0)
       http-accept (>= 1.7.0, < 2.0)
@@ -69,6 +84,9 @@ GEM
     ruby-progressbar (1.13.0)
     slack_socket_mode_bot (0.9.1)
       websocket (~> 1.2)
+    tiktoken_ruby (0.0.11.1)
+      rb_sys (= 0.9.106)
+    tiktoken_ruby (0.0.11.1-x86_64-linux)
     unicode-display_width (3.1.4)
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)

@@ -29,5 +29,9 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'dotenv'
   spec.add_runtime_dependency 'slack_socket_mode_bot'
 
+  spec.add_runtime_dependency 'base64'
+  spec.add_runtime_dependency 'openai'
   spec.add_runtime_dependency 'rest-client'
+  spec.add_runtime_dependency 'tiktoken_ruby'
+  spec.add_runtime_dependency 'nokogiri'
 end
