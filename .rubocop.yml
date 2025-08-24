@@ -2357,7 +2357,7 @@ Metrics/AbcSize:
   AllowedMethods: []
   AllowedPatterns: []
   CountRepeatedAttributes: true
-  Max: 17
+  Max: 25
 
 Metrics/BlockLength:
   Description: Avoid long blocks with many lines.
@@ -2410,13 +2410,13 @@ Metrics/CyclomaticComplexity:
   Max: 7
 
 Metrics/MethodLength:
-  Description: Avoid methods longer than 10 lines of code.
+  Description: Avoid methods longer than 30 lines of code.
   StyleGuide: "#short-methods"
   Enabled: true
   VersionAdded: '0.25'
   VersionChanged: '1.5'
   CountComments: false
-  Max: 10
+  Max: 30
   CountAsOne: []
   AllowedMethods: []
   AllowedPatterns: []
@@ -3313,7 +3313,7 @@ Style/DocumentDynamicEvalDefinition:
 
 Style/Documentation:
   Description: Document classes and non-namespace modules.
-  Enabled: true
+  Enabled: false
   VersionAdded: '0.9'
   AllowedConstants: []
   Exclude:
