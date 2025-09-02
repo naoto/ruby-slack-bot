@@ -64,5 +64,40 @@ module RubySlackBot
 
       messages
     end
+
+    def get_parent_url
+      return nil, nil if thread_ts.nil?
+      thread = conversations_history(
+        channel: channel, oldest: thread_ts, latest: thread_ts, inclusive: 1
+      )
+
+      messages = thread[:messages]
+      @logger.info "Thread messages: #{messages}"
+      
+      if messages.nil? || messages.empty?
+        @logger.warn 'No messages found in thread.'
+        group_history = conversations_replies(
+          channel: channel, ts: thread_ts
+        )
+        messages = group_history[:messages]
+        @logger.info "Group history messages: #{messages}"
+      end
+
+      if messages && !messages.empty? && !messages.first[:blocks].first.nil?
+        return messages.first[:blocks].first[:image_url], thread_ts
+      end
+
+      text = messages.first[:text]
+      url_match = text.match(/https?:\/\/[^\s?]+(?:\?[^\s]*)?/)
+      if url_match
+        return url_match[0], thread_ts
+      end
+
+      @logger.warn 'No messages found in group history.'
+      return nil, nil
+    rescue StandardError => e
+      @logger.error "Error fetching parent URL: #{e.message}"
+      return nil, nil
+    end
   end
 end

@@ -7,6 +7,7 @@ require 'bot/data'
 require 'json'
 require 'uri'
 require 'net/http'
+require 'thread'
 
 # Slack API の GET リクエストを叩けなかったのでモンキーパッチ
 class SlackSocketModeBot

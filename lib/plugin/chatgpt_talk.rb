@@ -11,9 +11,9 @@ class ChatGPTTalk < ChatGPT
     @message_history = Backup.load_backup(@talk_history_file) || []
     @talk_system = Backup.load_backup_job(@talk_job_system_file)
 
-    set(/^なおぼっと\s(.*)$/, 'ChatGPTと会話する') { |data:, matcher:| message_talk(data, matcher) }
+    set(/^なおぼっと\s(.*)$/m, 'ChatGPTと会話する') { |data:, matcher:| message_talk(data, matcher) }
     set(/^job$/, 'ChatGPTのシステムプロンプトを表示する') { |data:, matcher:| job_display(data, matcher) }
-    set(/^job\s(.*)$/, 'ChatGPTのシステムプロンプトを設定する') { |data:, matcher:| job_set(data, matcher) }
+    set(/^job\s(.*)$/m, 'ChatGPTのシステムプロンプトを設定する') { |data:, matcher:| job_set(data, matcher) }
     set(/^job reset$/, 'ChatGPTのシステムプロンプトをリセットする') { |data:, matcher:| job_reset(data, matcher) }
     set(/^talk reset$/, 'ChatGPTの会話履歴をリセットする') { |data:, matcher:| talk_reset(data, matcher) }
   end

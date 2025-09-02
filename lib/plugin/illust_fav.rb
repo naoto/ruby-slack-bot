@@ -92,7 +92,7 @@ class IllustFav < Plugin::Base
     emojis = matcher[0].scan(/:(.+?):/).flatten
     @logger.info "Received emojis: #{emojis.join(', ')}"
 
-    url, ts = get_parent_url(data)
+    url, ts = data.get_parent_url
 
     if url.nil?
       # urlが取得できなかった時は指定されたタグの画像を取得する
@@ -159,37 +159,5 @@ class IllustFav < Plugin::Base
         end
       end
     end
-  end
-
-  def get_parent_url(data)
-    if data.thread_ts
-      thread = data.conversations_history(
-        channel: data.channel, oldest: data.thread_ts, latest: data.thread_ts, inclusive: 1
-      )
-
-      messages = thread[:messages]
-      @logger.info "Thread messages: #{messages}"
-      
-      if messages.nil? || messages.empty?
-        @logger.warn 'No messages found in thread.'
-        group_history = data.conversations_replies(
-          channel: data.channel, ts: data.thread_ts
-        )
-        messages = group_history[:messages]
-        @logger.info "Group history messages: #{messages}"
-      end
-
-      if messages && !messages.empty?
-        return messages.first[:blocks].first[:image_url], data.thread_ts
-      else
-        @logger.warn 'No messages found in group history.'
-        return nil, nil
-      end
-    end
-
-    return nil, nil
-  rescue StandardError => e
-    @logger.error "Error fetching parent URL: #{e.message}"
-    return nil, nil
   end
 end
