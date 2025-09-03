@@ -6,7 +6,7 @@ class ChatGPTAA < ChatGPT
   def initialize(options:, logger:)
     super(options: options, logger: logger)
 
-    set(/^aa\s(.*)$/, 'ChatGPTにAAを作成させる') { |data:, matcher:| aa_create(data, matcher) }
+    set(/^aa[[:space:]](.*)$/, 'ChatGPTにAAを作成させる') { |data:, matcher:| aa_create(data, matcher) }
   end
 
   def aa_create(data, matcher)

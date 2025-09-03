@@ -13,6 +13,9 @@ class Ollama < Plugin::Base
     @chatgpt_api_key = ENV['CHATGPT_API_KEY']
     @server = ENV['OLLAMA_SERVER']
     @port = ENV['OLLAMA_PORT'] || '3000'
+    @open_web_ui_server = ENV['OPEN_WEB_UI_SERVER'] || @server
+    @open_web_ui_port = ENV['OPEN_WEB_UI_PORT']
+    @open_web_ui_token = ENV['OPEN_WEB_UI_TOKEN']
   end
 
   def send_message_generate(prompt, format=nil)
@@ -43,7 +46,48 @@ class Ollama < Plugin::Base
     json
   end
 
+  def search(context)
+    @logger.info("Sending search request to OpenWebUI with context: #{context}")
+
+    headers = {
+      "Authorization" => "Bearer #{@open_web_ui_token}",
+      "Content-Type" => "application/json",
+    }
+    request_data = {
+      "model" => "gpt-oss:20b",
+      "messages" => [
+        {"role" => "system", "content" => "yamlで返答してください。必ず日本語で返答してください。"},
+        {"role" => "user", "content" => context},
+      ],
+      "features" => {"web_search" => true},
+    }
+    @logger.info("OpenWebUI headers: #{headers}")
+    @logger.info("OpenWebUI request data: #{request_data}")
+    
+    uri = open_web_ui_url("chat/completions")
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = (uri.scheme == "https")
+
+    # タイムアウト設定
+    http.open_timeout = 600   # 接続確立のタイムアウト（秒）
+    http.read_timeout = 600  # レスポンス読み取りのタイムアウト（秒）
+
+    request = Net::HTTP::Post.new(uri.request_uri, headers)
+    request.body = request_data.to_json
+
+    res = http.request(request)
+
+    json = JSON.parse(res.body, symbolize_names: true)
+    @logger.info("OpenWebUI response: #{json}")
+
+    json[:choices][0][:message][:content]
+  end
+
   private
+
+  def open_web_ui_url(path = '')
+    URI("http://#{@open_web_ui_server}:#{@open_web_ui_port}/api/#{path}")
+  end
 
   def url(path = '')
     URI("http://#{@server}:#{@port}/ollama/api/#{path}")

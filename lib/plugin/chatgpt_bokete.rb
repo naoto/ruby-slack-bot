@@ -7,10 +7,10 @@ class ChatGPTBokete < ChatGPT
   def initialize(options:, logger:)
     super(options: options, logger: logger)
 
-    set(/^ボケて\s(.*)$/, 'ChatGPTに大喜利をさせる') { |data:, matcher:| bokete_create(data, matcher) }
-    set(/^ミルクボーイ\s(.*)$/, 'ChatGPTにミルクボーイのような大喜利をさせる') { |data:, matcher:| bokete_milkboy(data, matcher) }
-    set(/^クールポコ\s(.*)$/, 'ChatGPTにクールポコのような大喜利をさせる') { |data:, matcher:| bokete_coolpoko(data, matcher) }
-    set(/^ジョイマン\s(.*)$/, 'ChatGPTにジョイマンのような大喜利をさせる') { |data:, matcher:| bokete_joyman(data, matcher) }
+    set(/^ボケて[[:space:]](.*)$/, 'ChatGPTに大喜利をさせる') { |data:, matcher:| bokete_create(data, matcher) }
+    set(/^ミルクボーイ[[:space:]](.*)$/, 'ChatGPTにミルクボーイのような大喜利をさせる') { |data:, matcher:| bokete_milkboy(data, matcher) }
+    set(/^クールポコ[[:space:]](.*)$/, 'ChatGPTにクールポコのような大喜利をさせる') { |data:, matcher:| bokete_coolpoko(data, matcher) }
+    set(/^ジョイマン[[:space:]](.*)$/, 'ChatGPTにジョイマンのような大喜利をさせる') { |data:, matcher:| bokete_joyman(data, matcher) }
   end
 
   def bokete_create(data, matcher)

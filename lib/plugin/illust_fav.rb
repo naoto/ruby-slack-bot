@@ -11,7 +11,7 @@ class IllustFav < Plugin::Base
     @illust_server = ENV['ILLUST_SERVER']
     set(/^(?:(?::.+:)(?:\s)?)+$/, '絵文字のタグが付いた画像を表示する') { |data:, matcher:| get_tag(data, matcher) }
     set(/^tag$/, 'タグ一覧を表示する') { |data:, matcher:| get_tag_list(data, matcher) }
-    set(/^count\s+(?:(?::.+:)(?:\s)?)+$/, '絵文字のタグが付いた画像の数を表示する') { |data:, matcher:| get_tag_count(data, matcher) }
+    set(/^count[[:space:]]+(?:(?::.+:)(?:[[:space:]])?)+$/, '絵文字のタグが付いた画像の数を表示する') { |data:, matcher:| get_tag_count(data, matcher) }
 
     reaction_set(/^.*$/, '画像にタグを登録する') { |data:, reaction:| register_fav(data, reaction) }
   end

@@ -131,7 +131,16 @@ module RubySlackBot
       @instances.each do |ins|
         ins.keyword_method_list.each do |keymap|
           matcher = keymap[:regex].match(event[:text])
-          keymap[:block].call(data: bot_data, matcher:) if matcher
+          if matcher
+            Thread.new do
+              begin
+                keymap[:block].call(data: bot_data, matcher:)
+              rescue StandardError => e
+                @logger.error "Error in plugin #{ins.class} for regex #{keymap[:regex]}: #{e.message}"
+                bot_data.say(text: "エラーが発生しました: #{e.message}")
+              end
+            end.tap(&:detach)
+          end
         end
       end
     end
@@ -146,10 +155,15 @@ module RubySlackBot
 
       @instances.each do |ins|
         ins.reaction_method_list.each do |reactmap|
-          if reactmap[:reaction].is_a?(Regexp) && reaction =~ reactmap[:reaction]
-            reactmap[:block].call(data: bot_data, reaction:)
-          elsif reactmap[:reaction] == reaction
-            reactmap[:block].call(data: bot_data, reaction:)
+          if reactmap[:reaction].is_a?(Regexp) && reaction =~ reactmap[:reaction] || reactmap[:reaction] == reaction
+            Thread.new do
+              begin
+                reactmap[:block].call(data: bot_data, reaction:)
+              rescue StandardError => e
+                @logger.error "Error in plugin #{ins.class} for reaction #{reaction}: #{e.message}"
+                bot_data.say(text: "エラーが発生しました: #{e.message}")
+              end
+            end.tap(&:detach)
           end
         end
       end
