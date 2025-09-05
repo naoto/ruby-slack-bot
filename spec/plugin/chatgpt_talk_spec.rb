@@ -19,6 +19,10 @@ RSpec.describe ChatGPTTalk do
     allow(Backup).to receive(:load_backup).and_return([])
     allow(Backup).to receive(:load_backup_job).and_return('あなたは高性能AIです。')
     allow(Backup).to receive(:backup).and_return(true)
+    allow(Backup).to receive(:backup_job).and_return(true)
+    
+    # プラグインの@talk_systemを確実にモック値に設定
+    plugin.instance_variable_set(:@talk_system, 'あなたは高性能AIです。')
   end
 
   describe '#message_talk' do
