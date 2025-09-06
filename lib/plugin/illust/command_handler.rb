@@ -104,7 +104,7 @@ class IllustCommandHandler
     
     contents = @job_queue.contents
     data.say(text: "現在のイラスト生成キューの長さは #{queue_length} です。")
-    data.say(text: contents.map{ |m| m[:org_prompt] }.join("\n")) if !contents.nil? && !contents.empty?
+    data.say(text: contents.join("\n")) if !contents.nil? && !contents.empty?
   rescue StandardError => e
     @logger.error "Error in handle_queue_status: #{e.message}"
     data.say(text: "エラーが発生しました: #{e.message}")
