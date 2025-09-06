@@ -19,68 +19,62 @@ class ChatGPTSummary < Ollama
     url = extract_urls(word)
     @logger.info "Extracted URLs: #{url}"
 
-    data.say(text: "URL Not Found", thread_ts: data.ts) if url.empty?
+    if url.nil?
+      data.say(text: "URL Not Found", thread_ts: data.ts)
+      return
+    end
 
-    @logger.info "Fetching content from URL: #{url.first}"
+    @logger.info "Fetching content from URL: #{url}"
 
-    content = extract_content(url.first)
+    content = extract_content(url)
     @logger.info "Fetched content: #{content}"
 
-    summary_response = chatgpt_summary(content)
+    if content.empty?
+      data.say(text: "コンテンツを取得できませんでした", thread_ts: data.ts)
+      return
+    end
+
+    response = send_message(context: content, system_message: build_system_message)
+    
+    if response.nil? || response[:message].nil?
+      data.say(text: "要約の生成に失敗しました", thread_ts: data.ts)
+      return
+    end
+
+    summary_response = response[:message][:content]
     @logger.info "ChatGPT Summary response: #{summary_response}"
 
     data.say(text: summary_response, thread_ts: data.ts)
   rescue StandardError => e
     @logger.error "Error in summary: #{e.message}"
-    data.say(text: "エラーが発生しました: #{e.message}", thread_ts: data.ts)
+    error_message = if e.message.include?("コンテンツの取得に失敗しました")
+                      "エラーが発生しました: #{e.message}"
+                    else
+                      "エラーが発生しました: #{e.message}"
+                    end
+    data.say(text: error_message, thread_ts: data.ts)
   end
 
   private
 
-  def chatgpt_summary(content)
-    system_message = <<'SYSTEM_MESSAGE'
-      内容を下記のフォーマットで日本語で要約してください。
-      要約の際は、以下のルールを守ってください。
-      1. Markdown記法は絶対使用しないでください。
-      2. 重要なポイントを箇条書きでまとめる
-      3. 各ポイントは簡潔に、かつ具体的に記述
-      4. 文体はフォーマルで、専門用語を避ける
-      5. 読み手が理解しやすいように、論理的な流れを保つ
-      6. 可能であれば、具体例やデータを引用して信頼性を高める
-      7. 最後に、要約の結論を一文で述べる
-      8. 文章は日本語で書くこと
-
-      フォーマット:
-      ---
-      3行まとめ:
-        - ポイント1: [要約内容]
-        - ポイント2: [要約内容]
-        - ポイント3: [要約内容]
-
-      要約:
-      [要約内容]
-      参考:
-      [参考情報やリンク]
-      以上のフォーマットに従って、要約を作成してください。
-SYSTEM_MESSAGE
-
-    response = send_message(context: content, system_message: system_message)
-
-    @logger.info "ChatGPT summary response: #{response}"
-    res_message = response[:message][:content]
-
-    return res_message
-  end
-
   def extract_urls(text)
-    # HTTP/HTTPSのURLを抽出する正規表現
-    #url_regex = /https?:\/\/[^\s]+/i
-    url_regex = /<(https?:\/\/[^|>]+)(?:\|[^>]+)?>|https?:\/\/[^\s]+/i
-    text.scan(url_regex).first
+    # Slack形式のURLを抽出する正規表現
+    slack_url_match = text.match(/<(https?:\/\/[^|>]+)(?:\|[^>]+)?>/)
+    return slack_url_match[1] if slack_url_match
+
+    # 通常のHTTP/HTTPSのURLを抽出する正規表現
+    url_match = text.match(/https?:\/\/[^\s]+/)
+    return url_match[0] if url_match
+
+    nil
   end
 
   def extract_content(url)
-    html = URI.parse(url).read
+    begin
+      html = URI.parse(url).read
+    rescue => e
+      raise StandardError, "コンテンツの取得に失敗しました: #{e.message}"
+    end
 
     doc = Nokogiri::HTML.parse(html)
 
@@ -97,29 +91,8 @@ SYSTEM_MESSAGE
     best_score = -Float::INFINITY
 
     candidates.each do |node|
-      text = node.text.strip.gsub(/\s+/, " ")
-      next if text.length < 200  # 短すぎるのは除外
-
-      # 基本スコア: 文字数 & <p> の数
-      p_count = node.css("p").count
-      base = text.length + (p_count * 50)
-
-      # リンク密度: aタグ中の文字数 / 総文字数
-      link_text_len = node.css("a").map { |a| a.text.length }.sum
-      link_density = (link_text_len.to_f / [text.length, 1].max)
-
-      # メタ/ラッパ感のあるクラス名を減点
-      klass = (node["class"].to_s + " " + node["id"].to_s).downcase
-      penalty = 0
-      penalty += 200 if klass =~ /(nav|menu|breadcrumb|footer|header|sidebar|related|recommend)/
-      penalty += 100 if klass =~ /(list|grid|card|thumb)/
-
-      # 日本語向け: 句点・読点が多いほど加点（文の連続=本文っぽい）
-      jp_punct = text.count("。．、，")
-      punct_bonus = jp_punct * 3
-
-      score = base * (1.0 - link_density) + punct_bonus - penalty
-
+      score = calculate_content_score(node)
+      
       if score > best_score
         best_score = score
         best_node = node
@@ -138,5 +111,59 @@ SYSTEM_MESSAGE
 
     # 余計な連続改行調整
     body.gsub(/\n{3,}/, "\n\n").strip
+  end
+
+  def calculate_content_score(node)
+    text = node.text.strip.gsub(/\s+/, " ")
+    return -Float::INFINITY if text.length < 200  # 短すぎるのは除外
+
+    # 基本スコア: 文字数 & <p> の数
+    p_count = node.css("p").count
+    base = text.length + (p_count * 50)
+
+    # リンク密度: aタグ中の文字数 / 総文字数
+    link_text_len = node.css("a").map { |a| a.text.length }.sum
+    link_density = (link_text_len.to_f / [text.length, 1].max)
+
+    # メタ/ラッパ感のあるクラス名を減点
+    klass = (node["class"].to_s + " " + node["id"].to_s).downcase
+    penalty = 0
+    penalty += 200 if klass =~ /(nav|menu|breadcrumb|footer|header|sidebar|related|recommend)/
+    penalty += 100 if klass =~ /(list|grid|card|thumb)/
+
+    # 日本語向け: 句点・読点が多いほど加点（文の連続=本文っぽい）
+    jp_punct = text.count("。．、，")
+    punct_bonus = jp_punct * 3
+
+    score = base * (1.0 - link_density) + punct_bonus - penalty
+    score
+  end
+
+  def build_system_message
+    <<'SYSTEM_MESSAGE'
+内容を下記のフォーマットで日本語で要約してください。
+要約の際は、以下のルールを守ってください。
+1. Markdown記法は絶対使用しないでください。
+2. 重要なポイントを箇条書きでまとめる
+3. 各ポイントは簡潔に、かつ具体的に記述
+4. 文体はフォーマルで、専門用語を避ける
+5. 読み手が理解しやすいように、論理的な流れを保つ
+6. 可能であれば、具体例やデータを引用して信頼性を高める
+7. 最後に、要約の結論を一文で述べる
+8. 文章は日本語で書くこと
+
+フォーマット:
+---
+3行まとめ:
+  - ポイント1: [要約内容]
+  - ポイント2: [要約内容]
+  - ポイント3: [要約内容]
+
+要約:
+[要約内容]
+参考:
+[参考情報やリンク]
+以上のフォーマットに従って、要約を作成してください。
+SYSTEM_MESSAGE
   end
 end
