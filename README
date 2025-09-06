@@ -1,0 +1,4 @@
+Ruby Slack Bot
+=================================
+
+run: `bundle exec bin/ruby-slack-bot`
