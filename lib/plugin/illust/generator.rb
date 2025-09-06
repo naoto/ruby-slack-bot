@@ -10,7 +10,7 @@ class IllustGenerator
   end
 
   def generate_text2img(prompt:, seed: nil)
-    with_retry("text2img generation") do
+    with_retry('text2img generation') do
       @stable_diffusion.sd_start
       @stable_diffusion.generate(prompt: prompt, seed: seed)
     end
@@ -19,7 +19,7 @@ class IllustGenerator
   end
 
   def generate_img2img(url:, prompt:)
-    with_retry("img2img generation") do
+    with_retry('img2img generation') do
       @stable_diffusion.sd_start
       @stable_diffusion.generate_i2i(url: url, prompt: prompt)
     end
@@ -33,18 +33,16 @@ class IllustGenerator
     retry_count = 0
     begin
       yield
-    rescue => e
+    rescue StandardError => e
       @logger.error "Error in #{operation_name}: #{e.message}"
       @stable_diffusion.sd_stop
 
-      if retry_count < MAX_RETRIES
-        retry_count += 1
-        @logger.info "Retrying #{operation_name} (#{retry_count}/#{MAX_RETRIES})"
-        sleep RETRY_DELAY
-        retry
-      else
-        raise
-      end
+      raise unless retry_count < MAX_RETRIES
+
+      retry_count += 1
+      @logger.info "Retrying #{operation_name} (#{retry_count}/#{MAX_RETRIES})"
+      sleep RETRY_DELAY
+      retry
     end
   end
 end

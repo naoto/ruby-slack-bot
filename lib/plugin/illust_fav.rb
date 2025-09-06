@@ -7,10 +7,10 @@ require 'json'
 # 画像にタグを付けて管理する
 class IllustFav < Plugin::Base
   def initialize(options:, logger:)
-    super(options: options, logger: logger)
-    @illust_server = options[:illust_server] || ENV['ILLUST_SERVER']
+    super
+    @illust_server = options[:illust_server] || ENV.fetch('ILLUST_SERVER', nil)
     @http_client = options[:http_client] || RestClient
-    
+
     validate_configuration!
     register_handlers
   end
@@ -32,7 +32,7 @@ class IllustFav < Plugin::Base
 
   def get_tag_list(data, _)
     tags = fetch_all_tags
-    
+
     if tags.empty?
       data.say(text: 'タグが登録されていません')
     else
@@ -53,17 +53,17 @@ class IllustFav < Plugin::Base
   rescue StandardError => e
     handle_error(e, data, 'register_fav')
   end
-  
+
   def get_tag(data, matcher)
     emojis = extract_emojis_from_text(matcher[0])
     @logger.info "Received emojis: #{emojis.join(', ')}"
 
-    url, ts = data.get_parent_url
+    url, timestamp = data.parent_url
 
     if url.nil?
       display_tagged_image(data, emojis)
     else
-      delete_tags_from_image(data, emojis, url, ts)
+      delete_tags_from_image(data, emojis, url, timestamp)
     end
   rescue StandardError => e
     handle_error(e, data, 'get_tag')
@@ -78,24 +78,26 @@ class IllustFav < Plugin::Base
   def register_handlers
     set(/^(?:(?::.+:)(?:\s)?)+$/, '絵文字のタグが付いた画像を表示する') { |data:, matcher:| get_tag(data, matcher) }
     set(/^tag$/, 'タグ一覧を表示する') { |data:, matcher:| get_tag_list(data, matcher) }
-    set(/^count[[:space:]]+(?:(?::.+:)(?:[[:space:]])?)+$/, '絵文字のタグが付いた画像の数を表示する') { |data:, matcher:| get_tag_count(data, matcher) }
-    
+    set(/^count[[:space:]]+(?:(?::.+:)(?:[[:space:]])?)+$/, '絵文字のタグが付いた画像の数を表示する') do |data:, matcher:|
+      get_tag_count(data, matcher)
+    end
+
     reaction_set(/^.*$/, '画像にタグを登録する') { |data:, reaction:| register_fav(data, reaction) }
   end
 
   # Helper methods
-  
+
   def extract_emojis_from_text(text)
     text.scan(/:(.+?):/).flatten
   end
 
   def fetch_image_lists_for_emojis(emojis)
     line_sets = []
-    
+
     emojis.each do |emoji|
       @logger.info "Fetching image for emoji: #{emoji}"
       resp = @http_client.get(build_emoji_url(emoji))
-      
+
       if resp.code == 200
         lines = parse_image_list(resp.body)
         line_sets << lines
@@ -104,7 +106,7 @@ class IllustFav < Plugin::Base
         return []
       end
     end
-    
+
     line_sets
   end
 
@@ -114,12 +116,13 @@ class IllustFav < Plugin::Base
 
   def calculate_common_images_count(line_sets)
     return 0 if line_sets.empty?
+
     line_sets.reduce(&:&).size
   end
 
   def fetch_all_tags
     resp = @http_client.get(build_tag_list_url)
-    
+
     if resp.code == 200 && !resp.body.empty?
       JSON.parse(resp.body)
     else
@@ -155,14 +158,14 @@ class IllustFav < Plugin::Base
 
     tags = fetch_tags_for_image(image_url)
     blocks = build_image_blocks(image_url, tags)
-    
+
     data.say(blocks: blocks)
   end
 
   def select_random_common_image(line_sets)
     common_images = line_sets.reduce(&:&)
     @logger.warn 'No common image URL found for the provided emojis.' if common_images.empty?
-    
+
     selected = common_images.sample
     @logger.info "Selected image URL: #{selected}" if selected
     selected
@@ -171,7 +174,7 @@ class IllustFav < Plugin::Base
   def fetch_tags_for_image(image_url)
     payload = { url: image_url }
     res = @http_client.get(build_image_tags_url, params: payload)
-    
+
     if res.code == 200 && !res.body.empty?
       tags = JSON.parse(res.body)
       @logger.info "Fetched tags: #{tags.join(', ')}"
@@ -184,30 +187,30 @@ class IllustFav < Plugin::Base
   def build_image_blocks(image_url, tags)
     [
       {
-        "type": 'image',
-        "title": {
-          "type": 'plain_text',
-          "text": format_tags_for_display(tags)
+        type: 'image',
+        title: {
+          type: 'plain_text',
+          text: format_tags_for_display(tags)
         },
-        "image_url": image_url,
-        "alt_text": tags.join(' ')
+        image_url: image_url,
+        alt_text: tags.join(' ')
       }
     ]
   end
 
-  def delete_tags_from_image(data, emojis, url, ts)
+  def delete_tags_from_image(data, emojis, url, timestamp)
     emojis.each do |emoji|
       @logger.info "Deleting tag for emoji: #{emoji} with URL: #{url}"
-      
-      if delete_tag_from_server(emoji, url)
-        data.say(text: "タグ :#{emoji}: を削除しました", thread_ts: ts)
+
+      if delete_tag_from_server?(emoji, url)
+        data.say(text: "タグ :#{emoji}: を削除しました", thread_ts: timestamp)
       else
-        data.say(text: ":#{emoji}: の削除に失敗しました...", thread_ts: ts)
+        data.say(text: ":#{emoji}: の削除に失敗しました...", thread_ts: timestamp)
       end
     end
   end
 
-  def delete_tag_from_server(emoji, url)
+  def delete_tag_from_server?(emoji, url)
     payload = { keyword: url }
     res = @http_client.post(build_tag_deletion_url(emoji), payload)
 
@@ -226,7 +229,7 @@ class IllustFav < Plugin::Base
   end
 
   # URL building methods
-  
+
   def build_emoji_url(emoji)
     "https://#{@illust_server}/#{emoji}.txt"
   end

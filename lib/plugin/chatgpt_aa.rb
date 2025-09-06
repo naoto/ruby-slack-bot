@@ -4,7 +4,7 @@ require_relative 'chatgpt/chatgpt'
 
 class ChatGPTAA < ChatGPT
   def initialize(options:, logger:)
-    super(options: options, logger: logger)
+    super
 
     set(/^aa[[:space:]](.*)$/, 'ChatGPTにAAを作成させる') { |data:, matcher:| aa_create(data, matcher) }
   end

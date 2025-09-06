@@ -6,7 +6,7 @@ class Munou < Ollama
   MAX_HISTORY_SIZE = 20
 
   def initialize(options:, logger:)
-    super(options: options, logger: logger)
+    super
     @history = []
 
     register_handlers
@@ -28,7 +28,7 @@ class Munou < Ollama
 
     response = generate_chat_response(user_message)
     answer = extract_response_content(response)
-    
+
     update_conversation_history(user_message, answer)
     respond_with_result(data, answer)
   rescue StandardError => e
@@ -37,7 +37,7 @@ class Munou < Ollama
 
   def clear_history
     @history.clear
-    @logger.info "Conversation history cleared"
+    @logger.info 'Conversation history cleared'
   end
 
   def history_size
@@ -48,7 +48,7 @@ class Munou < Ollama
   def register_reset_handler
     set(/^無能[[:space:]]リセット$/, '無能の会話履歴をリセット') do |data:|
       clear_history
-      data.say(text: "会話履歴をリセットしました。")
+      data.say(text: '会話履歴をリセットしました。')
     end
   end
 
@@ -60,7 +60,7 @@ class Munou < Ollama
     set(/^(無能|むのう)[[:space:]](.*)$/, '無能と会話する') do |data:, matcher:|
       munou_chat(data, matcher)
     end
-    
+
     set(/^(.*)調べて$/, '無能に調べさせる') do |data:, matcher:|
       munou_search(data, matcher)
     end

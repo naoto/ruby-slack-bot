@@ -21,7 +21,7 @@ RSpec.describe IllustJobQueue do
     context 'when queue is not full' do
       it 'successfully enqueues a job' do
         result = queue.enqueue(job)
-        
+
         expect(result).to be true
         expect(queue.size).to eq(1)
         expect(logger).to have_received(:info).with(match(/Enqueueing job: prompt=test prompt, seed=42/))
@@ -35,7 +35,7 @@ RSpec.describe IllustJobQueue do
 
       it 'rejects the job and returns false' do
         result = queue.enqueue(job)
-        
+
         expect(result).to be false
         expect(queue.size).to eq(max_size)
         expect(logger).to have_received(:warn).with('Queue is full, rejecting job')
@@ -71,7 +71,7 @@ RSpec.describe IllustJobQueue do
     it 'returns a copy of the queue contents' do
       contents = queue.contents
       expect(contents).to eq([job1, job2])
-      
+
       # Verify it's a copy, not the original
       contents.clear
       expect(queue.size).to eq(2)

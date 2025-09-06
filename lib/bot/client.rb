@@ -7,7 +7,6 @@ require 'bot/data'
 require 'json'
 require 'uri'
 require 'net/http'
-require 'thread'
 
 # Slack API の GET リクエストを叩けなかったのでモンキーパッチ
 class SlackSocketModeBot
@@ -131,16 +130,14 @@ module RubySlackBot
       @instances.each do |ins|
         ins.keyword_method_list.each do |keymap|
           matcher = keymap[:regex].match(event[:text])
-          if matcher
-            Thread.new do
-              begin
-                keymap[:block].call(data: bot_data, matcher:)
-              rescue StandardError => e
-                @logger.error "Error in plugin #{ins.class} for regex #{keymap[:regex]}: #{e.message}"
-                bot_data.say(text: "エラーが発生しました: #{e.message}")
-              end
-            end.tap(&:detach)
-          end
+          next unless matcher
+
+          Thread.new do
+            keymap[:block].call(data: bot_data, matcher:)
+          rescue StandardError => e
+            @logger.error "Error in plugin #{ins.class} for regex #{keymap[:regex]}: #{e.message}"
+            bot_data.say(text: "エラーが発生しました: #{e.message}")
+          end.tap(&:detach)
         end
       end
     end
@@ -155,16 +152,17 @@ module RubySlackBot
 
       @instances.each do |ins|
         ins.reaction_method_list.each do |reactmap|
-          if reactmap[:reaction].is_a?(Regexp) && reaction =~ reactmap[:reaction] || reactmap[:reaction] == reaction
-            Thread.new do
-              begin
-                reactmap[:block].call(data: bot_data, reaction:)
-              rescue StandardError => e
-                @logger.error "Error in plugin #{ins.class} for reaction #{reaction}: #{e.message}"
-                bot_data.say(text: "エラーが発生しました: #{e.message}")
-              end
-            end.tap(&:detach)
+          unless (reactmap[:reaction].is_a?(Regexp) && reaction =~ reactmap[:reaction]) ||
+                 reactmap[:reaction] == reaction
+            next
           end
+
+          Thread.new do
+            reactmap[:block].call(data: bot_data, reaction:)
+          rescue StandardError => e
+            @logger.error "Error in plugin #{ins.class} for reaction #{reaction}: #{e.message}"
+            bot_data.say(text: "エラーが発生しました: #{e.message}")
+          end.tap(&:detach)
         end
       end
     end

@@ -17,7 +17,6 @@ Gem::Specification.new do |spec|
 
   spec.files         = `git ls-files`.split($INPUT_RECORD_SEPARATOR)
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
   spec.required_ruby_version = '>= 3.4.1'
 
@@ -26,12 +25,13 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec'
   spec.add_development_dependency 'rubocop'
 
-  spec.add_runtime_dependency 'dotenv'
-  spec.add_runtime_dependency 'slack_socket_mode_bot'
+  spec.add_dependency 'dotenv'
+  spec.add_dependency 'slack_socket_mode_bot'
 
-  spec.add_runtime_dependency 'base64'
-  spec.add_runtime_dependency 'openai'
-  spec.add_runtime_dependency 'rest-client'
-  spec.add_runtime_dependency 'tiktoken_ruby'
-  spec.add_runtime_dependency 'nokogiri'
+  spec.add_dependency 'base64'
+  spec.add_dependency 'nokogiri'
+  spec.add_dependency 'openai'
+  spec.add_dependency 'rest-client'
+  spec.add_dependency 'tiktoken_ruby'
+  spec.metadata['rubygems_mfa_required'] = 'true'
 end

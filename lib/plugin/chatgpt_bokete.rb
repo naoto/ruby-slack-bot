@@ -5,7 +5,7 @@ require_relative 'chatgpt/chatgpt'
 # rubocop:disable Metrics/ClassLength, Metrics/MethodLength
 class ChatGPTBokete < ChatGPT
   def initialize(options:, logger:)
-    super(options: options, logger: logger)
+    super
 
     set(/^ボケて[[:space:]](.*)$/, 'ChatGPTに大喜利をさせる') { |data:, matcher:| bokete_create(data, matcher) }
     set(/^ミルクボーイ[[:space:]](.*)$/, 'ChatGPTにミルクボーイのような大喜利をさせる') { |data:, matcher:| bokete_milkboy(data, matcher) }
@@ -31,7 +31,7 @@ class ChatGPTBokete < ChatGPT
     word = matcher[1]
     @logger.info "Received message for Milkboy Bokete: #{word}"
 
-    system_message = <<'MILKBOY_FORMAT'
+    system_message = <<MILKBOY_FORMAT
         以下のフォーマットのような漫才を「ミルクボーイ漫才」と呼ぶ。
         {#お題}というお題でミルクボーイ漫才を作れ。
         ミルクボーイの漫才はオカンが思い出せない名前を推測していくが毎回否定されるというものです。
@@ -143,7 +143,7 @@ MILKBOY_FORMAT
     word = matcher[1]
     @logger.info "Received message for Coolpoko Bokete: #{word}"
 
-    system_message = <<'COOLPOKO_FORMAT'
+    system_message = <<COOLPOKO_FORMAT
         私がテーマを与えます
         テーマに沿ってドウェインジョンソンとダースベイダーの二人の下記の例のような構文を完成させてください。
         ---
@@ -174,7 +174,7 @@ COOLPOKO_FORMAT
     word = matcher[1]
     @logger.info "Received message for Joyman Bokete: #{word}"
 
-    system_message = <<'JOYMAN_FORMAT'
+    system_message = <<JOYMAN_FORMAT
         あなたはナンセンスな言葉遊び職人です。
         私がワードを与えます
         以下の「語感シュール」ルールに従って、与えられたワードを前半部分としてフレーズを１つ作ってください。

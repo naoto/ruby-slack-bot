@@ -36,8 +36,8 @@ RSpec.describe ChatGPTSummary do
   end
   let(:expected_content) do
     "これは重要な段落です。記事の本文として使用されます。この段落には意味のある内容が含まれています。この文章は要約のテストのために作成されました。内容は特に意味を持ちませんが、文字数を調整しています。\n\n" \
-    "2番目の段落も重要な内容です。詳細な説明が含まれています。これにより、記事の内容が充実します。さらに多くの情報が提供され、読者にとって価値のあるコンテンツとなっています。\n\n" \
-    "3番目の段落では、さらに詳しい情報を提供します。読者にとって価値のある情報が含まれています。この段落も十分な長さを持ち、意味のある内容を含んでいます。"
+      "2番目の段落も重要な内容です。詳細な説明が含まれています。これにより、記事の内容が充実します。さらに多くの情報が提供され、読者にとって価値のあるコンテンツとなっています。\n\n" \
+      '3番目の段落では、さらに詳しい情報を提供します。読者にとって価値のある情報が含まれています。この段落も十分な長さを持ち、意味のある内容を含んでいます。'
   end
 
   before do
@@ -68,8 +68,8 @@ RSpec.describe ChatGPTSummary do
       before do
         allow(URI).to receive(:parse).with(url).and_return(double(read: html_content))
         allow(plugin).to receive(:send_message).and_return({
-          message: { content: '要約結果です' }
-        })
+                                                             message: { content: '要約結果です' }
+                                                           })
         allow(data).to receive(:say)
       end
 
@@ -98,8 +98,8 @@ RSpec.describe ChatGPTSummary do
       before do
         allow(URI).to receive(:parse).with(url).and_return(double(read: html_content))
         allow(plugin).to receive(:send_message).and_return({
-          message: { content: '要約結果です' }
-        })
+                                                             message: { content: '要約結果です' }
+                                                           })
         allow(data).to receive(:say)
       end
 
@@ -178,25 +178,25 @@ RSpec.describe ChatGPTSummary do
   describe '#extract_urls' do
     context 'URLが正しく抽出される' do
       it 'Slack形式のURLからURLを抽出する' do
-        text = "記事はこちら <https://example.com/article|リンクテキスト> です"
+        text = '記事はこちら <https://example.com/article|リンクテキスト> です'
         result = plugin.send(:extract_urls, text)
         expect(result).to eq('https://example.com/article')
       end
 
       it 'Slack形式のURLからURLを抽出する（パイプなし）' do
-        text = "記事はこちら <https://example.com/article> です"
+        text = '記事はこちら <https://example.com/article> です'
         result = plugin.send(:extract_urls, text)
         expect(result).to eq('https://example.com/article')
       end
 
       it '通常のHTTPSのURLを抽出する' do
-        text = "記事はこちら https://example.com/article です"
+        text = '記事はこちら https://example.com/article です'
         result = plugin.send(:extract_urls, text)
         expect(result).to eq('https://example.com/article')
       end
 
       it '通常のHTTPのURLを抽出する' do
-        text = "記事はこちら http://example.com/article です"
+        text = '記事はこちら http://example.com/article です'
         result = plugin.send(:extract_urls, text)
         expect(result).to eq('http://example.com/article')
       end
@@ -204,7 +204,7 @@ RSpec.describe ChatGPTSummary do
 
     context 'URLが含まれていない場合' do
       it 'nilを返す' do
-        text = "URLが含まれていないテキスト"
+        text = 'URLが含まれていないテキスト'
         result = plugin.send(:extract_urls, text)
         expect(result).to be_nil
       end
@@ -248,27 +248,25 @@ RSpec.describe ChatGPTSummary do
 
       allow(URI).to receive(:parse).with(url).and_return(double(read: noisy_html))
       result = plugin.send(:extract_content, url)
-      
+
       # スクリプトとスタイルが除去されることを確認
       expect(result).not_to include('alert')
       expect(result).not_to include('color: red')
-      
+
       # 何らかのコンテンツが抽出されることを確認（空でない）
       expect(result).to be_a(String)
-      
+
       # メインコンテンツが含まれることを確認（十分な長さがある場合）
-      if result.length > 0
-        expect(result).to include('重要な段落')
-      end
+      expect(result).to include('重要な段落') unless result.empty?
     end
 
     context 'ネットワークエラーが発生した場合' do
       it 'エラーメッセージと共に例外を発生させる' do
         allow(URI).to receive(:parse).with(url).and_raise(SocketError.new('ネットワークエラー'))
 
-        expect {
+        expect do
           plugin.send(:extract_content, url)
-        }.to raise_error(/コンテンツの取得に失敗しました/)
+        end.to raise_error(/コンテンツの取得に失敗しました/)
       end
     end
   end
@@ -294,7 +292,7 @@ RSpec.describe ChatGPTSummary do
     it '十分な長さのコンテンツは正のスコアを持つ' do
       # html_contentを使用（すでに十分な長さがある）
       article_node = doc.css('article').first
-      
+
       score = plugin.send(:calculate_content_score, article_node)
       expect(score).to be_a(Numeric)
       expect(score).to be > 0
@@ -303,7 +301,7 @@ RSpec.describe ChatGPTSummary do
     it 'ナビゲーション系のクラス名がある場合にペナルティが適用される' do
       # html_contentと同じ内容で、クラス名だけ異なるものを比較
       article_content = doc.css('article').first.inner_html
-      
+
       nav_html = "<div class='navigation'>#{article_content}</div>"
       nav_doc = Nokogiri::HTML.parse(nav_html)
       nav_node = nav_doc.css('div').first

@@ -21,15 +21,13 @@ module Backup
     end
 
     def backup_job(text, filepath)
-      File.open(filepath, 'w') do |f|
-        f.write(text)
-      end
+      File.write(filepath, text)
     end
 
     def load_backup_job(filepath)
       return 'あなたは高性能AIです。' unless File.exist?(filepath)
 
-      File.open(filepath, 'r', &:read)
+      File.read(filepath)
     end
   end
 end

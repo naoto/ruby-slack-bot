@@ -4,7 +4,7 @@ require_relative 'ollama/ollama'
 
 class ChatGPTTranslate < ChatGPT
   def initialize(options:, logger:)
-    super(options: options, logger: logger)
+    super
 
     reaction_set('jp', '日本語に翻訳する') { |data:, reaction:| translate_jp(data, reaction) }
     reaction_set('us', '英語に翻訳する') { |data:, reaction:| translate_en(data, reaction) }

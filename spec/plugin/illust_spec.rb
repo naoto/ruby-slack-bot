@@ -10,7 +10,7 @@ RSpec.describe Illust do
   let(:logger) { test_logger }
   let(:data) { build_event(text: 'test') }
   let(:stable_diffusion) { instance_double('StableDiffusion') }
-  
+
   before do
     allow(StableDiffusion).to receive(:new).and_return(stable_diffusion)
     allow(stable_diffusion).to receive(:sd_start)
@@ -22,7 +22,7 @@ RSpec.describe Illust do
   describe '#initialize' do
     it 'sets up the queue and worker components' do
       plugin = build_plugin(Illust, options: options, logger: logger)
-      
+
       expect(plugin.instance_variable_get(:@job_queue)).to be_a(IllustJobQueue)
       expect(plugin.instance_variable_get(:@generator)).to be_a(IllustGenerator)
       expect(plugin.instance_variable_get(:@translator)).to be_a(IllustTranslator)
@@ -32,7 +32,7 @@ RSpec.describe Illust do
 
     it 'registers all commands' do
       plugin = build_plugin(Illust, options: options, logger: logger)
-      
+
       expect(plugin).to have_handler(/^イラスト[[:space:]](.*)$/)
       expect(plugin).to have_handler(/^illust[[:space:]](.*)$/)
       expect(plugin).to have_handler(/^i2i[[:space:]](.*)$/)
@@ -62,9 +62,9 @@ RSpec.describe Illust do
         # Find the handler and execute it
         handlers = plugin.keyword_method_list
         illust_handler = handlers.find { |h| h[:regex] == /^イラスト[[:space:]](.*)$/ }
-        
+
         illust_handler[:block].call(data: data, matcher: matcher)
-        
+
         expect(command_handler).to have_received(:handle_japanese_illust).with(data, '猫')
       end
     end
@@ -75,9 +75,9 @@ RSpec.describe Illust do
       it 'delegates to command handler' do
         handlers = plugin.keyword_method_list
         illust_handler = handlers.find { |h| h[:regex] == /^illust[[:space:]](.*)$/ }
-        
+
         illust_handler[:block].call(data: data, matcher: matcher)
-        
+
         expect(command_handler).to have_received(:handle_english_illust).with(data, 'cat')
       end
     end
@@ -88,9 +88,9 @@ RSpec.describe Illust do
       it 'delegates to command handler' do
         handlers = plugin.keyword_method_list
         queue_handler = handlers.find { |h| h[:regex] == /^イラストキュー$/ }
-        
+
         queue_handler[:block].call(data: data, matcher: matcher)
-        
+
         expect(command_handler).to have_received(:handle_queue_status).with(data)
       end
     end
@@ -102,9 +102,9 @@ RSpec.describe Illust do
 
     it 'stops the worker' do
       allow(worker).to receive(:stop)
-      
+
       plugin.cleanup
-      
+
       expect(worker).to have_received(:stop)
     end
   end

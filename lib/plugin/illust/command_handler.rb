@@ -23,7 +23,7 @@ class IllustCommandHandler
       data: data
     )
   rescue StandardError => e
-    handle_error(e, data, "handle_japanese_illust")
+    handle_error(e, data, 'handle_japanese_illust')
   end
 
   def handle_english_illust(data, prompt)
@@ -39,13 +39,13 @@ class IllustCommandHandler
       data: data
     )
   rescue StandardError => e
-    handle_error(e, data, "handle_english_illust")
+    handle_error(e, data, 'handle_english_illust')
   end
 
   def handle_img2img(data, prompt)
     @logger.info "Received img2img request: #{prompt}"
 
-    url, ts = data.get_parent_url
+    url, ts = data.parent_url
     return handle_missing_parent_image(data) if url.nil?
 
     translated_prompt = @translator.translate_to_english(prompt)
@@ -60,7 +60,7 @@ class IllustCommandHandler
       data: data
     )
   rescue StandardError => e
-    handle_error(e, data, "handle_img2img")
+    handle_error(e, data, 'handle_img2img')
   end
 
   def handle_hokusai(data, subject)
@@ -78,7 +78,7 @@ class IllustCommandHandler
       data: data
     )
   rescue StandardError => e
-    handle_error(e, data, "handle_hokusai")
+    handle_error(e, data, 'handle_hokusai')
   end
 
   def handle_poem(data, word)
@@ -95,13 +95,13 @@ class IllustCommandHandler
       data: data
     )
   rescue StandardError => e
-    handle_error(e, data, "handle_poem")
+    handle_error(e, data, 'handle_poem')
   end
 
   def handle_queue_status(data)
     queue_length = @job_queue.size
     @logger.info "Current queue size: #{queue_length}"
-    
+
     contents = @job_queue.contents
     data.say(text: "現在のイラスト生成キューの長さは #{queue_length} です。")
     data.say(text: contents.join("\n")) if !contents.nil? && !contents.empty?
@@ -114,11 +114,9 @@ class IllustCommandHandler
 
   def enqueue_job(**job_params)
     success = @job_queue.enqueue(job_params)
-    
-    unless success
-      job_params[:data].say(text: "現在処理中のため、しばらく待ってから再度お試しください。")
-    end
-    
+
+    job_params[:data].say(text: '現在処理中のため、しばらく待ってから再度お試しください。') unless success
+
     success
   end
 
@@ -129,13 +127,13 @@ class IllustCommandHandler
 
   def handle_missing_parent_image(data)
     data.say(
-      text: "元画像のURLが取得できません。スレッド内で実行してください。",
+      text: '元画像のURLが取得できません。スレッド内で実行してください。',
       thread_ts: data.thread_ts || data.ts
     )
   end
 
   def extract_parent_info(data)
-    url, ts = data.get_parent_url
+    url, ts = data.parent_url
     return DEFAULT_SEED, nil if url.nil?
 
     seed = extract_seed_from_url(url)

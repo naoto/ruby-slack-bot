@@ -8,7 +8,7 @@ RSpec.describe IllustFav do
   let(:illust_server) { 'test-server.com' }
   let(:http_client) { double('HTTPClient') }
   let(:options) { { illust_server: illust_server, http_client: http_client } }
-  
+
   subject(:plugin) { build_plugin(described_class, options: options) }
 
   before do
@@ -18,7 +18,7 @@ RSpec.describe IllustFav do
   describe 'initialization' do
     context 'when illust_server is not configured' do
       let(:options) { { http_client: http_client } }
-      
+
       before do
         ENV.delete('ILLUST_SERVER')
       end
@@ -96,7 +96,7 @@ RSpec.describe IllustFav do
 
   describe '#get_tag_list' do
     let(:data) { build_event(text: 'tag') }
-    let(:tags) { ['cat', 'dog', 'bird'] }
+    let(:tags) { %w[cat dog bird] }
 
     context 'when tags exist' do
       before do
@@ -158,7 +158,7 @@ RSpec.describe IllustFav do
   end
 
   describe '#get_tag' do
-    let(:emojis) { ['cat', 'dog'] }
+    let(:emojis) { %w[cat dog] }
     let(:data) { build_event(text: ':cat: :dog:') }
     let(:matcher) { data.text.match(/^(?:(?::.+:)(?:\s)?)+$/) }
 
@@ -166,10 +166,10 @@ RSpec.describe IllustFav do
       let(:cat_lines) { "image1.jpg\nimage2.jpg" }
       let(:dog_lines) { "image2.jpg\nimage3.jpg" }
       let(:selected_image) { 'image2.jpg' }
-      let(:image_tags) { ['nature', 'animal'] }
+      let(:image_tags) { %w[nature animal] }
 
       before do
-        allow(data).to receive(:get_parent_url).and_return([nil, nil])
+        allow(data).to receive(:parent_url).and_return([nil, nil])
         allow(http_client).to receive(:get).with("https://#{illust_server}/cat.txt")
                                            .and_return(double(code: 200, body: cat_lines))
         allow(http_client).to receive(:get).with("https://#{illust_server}/dog.txt")
@@ -178,7 +178,7 @@ RSpec.describe IllustFav do
           "https://#{illust_server}/ilusttag",
           params: { url: selected_image }
         ).and_return(double(code: 200, body: image_tags.to_json))
-        
+
         # Mock random selection
         allow_any_instance_of(Array).to receive(:sample).and_return(selected_image)
       end
@@ -186,16 +186,16 @@ RSpec.describe IllustFav do
       it 'displays image with tags' do
         expected_blocks = [
           {
-            "type": 'image',
-            "title": {
-              "type": 'plain_text',
-              "text": ':nature: :animal:'
+            type: 'image',
+            title: {
+              type: 'plain_text',
+              text: ':nature: :animal:'
             },
-            "image_url": selected_image,
-            "alt_text": 'nature animal'
+            image_url: selected_image,
+            alt_text: 'nature animal'
           }
         ]
-        
+
         expect(data).to receive(:say).with(blocks: expected_blocks)
         plugin.get_tag(data, matcher)
       end
@@ -206,7 +206,7 @@ RSpec.describe IllustFav do
       let(:parent_ts) { '123456789' }
 
       before do
-        allow(data).to receive(:get_parent_url).and_return([parent_url, parent_ts])
+        allow(data).to receive(:parent_url).and_return([parent_url, parent_ts])
         emojis.each do |emoji|
           allow(http_client).to receive(:post).with(
             "https://#{illust_server}/delete_tag/#{emoji}",

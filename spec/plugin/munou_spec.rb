@@ -32,7 +32,7 @@ RSpec.describe Munou do
 
     it 'sends message to ollama with correct context' do
       plugin.munou_chat(data, matcher)
-      
+
       expect(plugin).to have_received(:send_message).with(
         context: 'こんにちは',
         history: []
@@ -41,13 +41,13 @@ RSpec.describe Munou do
 
     it 'responds with the generated content' do
       expect(data).to receive(:say).with(text: 'こんにちは！何かお手伝いできることはありますか？')
-      
+
       plugin.munou_chat(data, matcher)
     end
 
     it 'adds user message to history' do
       plugin.munou_chat(data, matcher)
-      
+
       expect(plugin.instance_variable_get(:@history)).to include(
         { role: 'user', content: 'こんにちは' }
       )
@@ -55,7 +55,7 @@ RSpec.describe Munou do
 
     it 'adds assistant response to history' do
       plugin.munou_chat(data, matcher)
-      
+
       expect(plugin.instance_variable_get(:@history)).to include(
         { role: 'assistant', content: 'こんにちは！何かお手伝いできることはありますか？' }
       )
@@ -68,13 +68,13 @@ RSpec.describe Munou do
 
       it 'handles error gracefully' do
         expect(data).to receive(:say).with(text: 'エラーが発生しました: Connection failed')
-        
+
         plugin.munou_chat(data, matcher)
       end
 
       it 'logs the error' do
         expect(plugin.logger).to receive(:error).with('Error in munou_chat: Connection failed')
-        
+
         plugin.munou_chat(data, matcher)
       end
     end
@@ -92,13 +92,13 @@ RSpec.describe Munou do
 
     it 'searches with correct word' do
       plugin.munou_search(data, matcher)
-      
+
       expect(plugin).to have_received(:search).with('Ruby')
     end
 
     it 'responds with search result' do
       expect(data).to receive(:say).with(text: search_result)
-      
+
       plugin.munou_search(data, matcher)
     end
 
@@ -109,13 +109,13 @@ RSpec.describe Munou do
 
       it 'handles error gracefully' do
         expect(data).to receive(:say).with(text: 'エラーが発生しました: Search API failed')
-        
+
         plugin.munou_search(data, matcher)
       end
 
       it 'logs the error' do
         expect(plugin.logger).to receive(:error).with('Error in munou_search: Search API failed')
-        
+
         plugin.munou_search(data, matcher)
       end
     end
@@ -124,9 +124,9 @@ RSpec.describe Munou do
   describe '#clear_history' do
     it 'clears the conversation history' do
       plugin.instance_variable_set(:@history, [{ role: 'user', content: 'test' }])
-      
+
       plugin.clear_history
-      
+
       expect(plugin.instance_variable_get(:@history)).to be_empty
     end
   end
@@ -138,7 +138,7 @@ RSpec.describe Munou do
         { role: 'assistant', content: 'response1' }
       ]
       plugin.instance_variable_set(:@history, history)
-      
+
       expect(plugin.history_size).to eq(2)
     end
   end
@@ -152,7 +152,7 @@ RSpec.describe Munou do
 
       # Trigger history limit
       plugin.send(:limit_history_size)
-      
+
       expect(plugin.history_size).to eq(described_class::MAX_HISTORY_SIZE)
     end
   end

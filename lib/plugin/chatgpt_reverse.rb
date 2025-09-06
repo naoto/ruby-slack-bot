@@ -4,7 +4,7 @@ require_relative 'chatgpt/chatgpt'
 
 class ChatGPTReverse < ChatGPT
   def initialize(options:, logger:)
-    super(options: options, logger: logger)
+    super
 
     set(/^対義語[[:space:]](.*)$/, 'ChatGPTに対義語を作成させる') { |data:, matcher:| antonym_create(data, matcher) }
   end

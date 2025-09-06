@@ -5,7 +5,7 @@ require_relative 'chatgpt/backup'
 
 class ChatGPTTalk < ChatGPT
   def initialize(options:, logger:)
-    super(options: options, logger: logger)
+    super
     @talk_history_file = 'talk_history.json'
     @talk_job_system_file = 'talk_job_system.json'
     @message_history = Backup.load_backup(@talk_history_file) || []

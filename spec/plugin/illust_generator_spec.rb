@@ -24,7 +24,7 @@ RSpec.describe IllustGenerator do
 
       it 'generates an image and returns the URL' do
         result = generator.generate_text2img(prompt: prompt, seed: seed)
-        
+
         expect(result).to eq('http://example.com/image.png')
         expect(stable_diffusion).to have_received(:sd_start)
         expect(stable_diffusion).to have_received(:generate).with(prompt: prompt, seed: seed)
@@ -38,8 +38,10 @@ RSpec.describe IllustGenerator do
       end
 
       it 'retries up to MAX_RETRIES times' do
-        expect { generator.generate_text2img(prompt: prompt, seed: seed) }.to raise_error(StandardError, 'Generation failed')
-        
+        expect do
+          generator.generate_text2img(prompt: prompt, seed: seed)
+        end.to raise_error(StandardError, 'Generation failed')
+
         expect(stable_diffusion).to have_received(:generate).exactly(IllustGenerator::MAX_RETRIES + 1).times
         expect(stable_diffusion).to have_received(:sd_stop).at_least(IllustGenerator::MAX_RETRIES + 1).times
         expect(logger).to have_received(:error).at_least(IllustGenerator::MAX_RETRIES).times
@@ -58,7 +60,7 @@ RSpec.describe IllustGenerator do
 
       it 'generates an image and returns the URL' do
         result = generator.generate_img2img(url: url, prompt: prompt)
-        
+
         expect(result).to eq('http://example.com/result.png')
         expect(stable_diffusion).to have_received(:sd_start)
         expect(stable_diffusion).to have_received(:generate_i2i).with(url: url, prompt: prompt)
@@ -73,7 +75,7 @@ RSpec.describe IllustGenerator do
 
       it 'retries up to MAX_RETRIES times' do
         expect { generator.generate_img2img(url: url, prompt: prompt) }.to raise_error(StandardError, 'I2I failed')
-        
+
         expect(stable_diffusion).to have_received(:generate_i2i).exactly(IllustGenerator::MAX_RETRIES + 1).times
         expect(stable_diffusion).to have_received(:sd_stop).at_least(IllustGenerator::MAX_RETRIES + 1).times
         expect(logger).to have_received(:error).at_least(IllustGenerator::MAX_RETRIES).times

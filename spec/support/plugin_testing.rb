@@ -11,7 +11,7 @@ module PluginTesting
     def build_event(text: '', say: nil, **extras)
       say ||= ->(**_) {}
       defaults = { text: text, say: say }
-      instance_double('Event', **defaults.merge(extras))
+      instance_double('Event', **defaults, **extras)
     end
 
     def build_plugin(klass, options: {}, logger: test_logger)

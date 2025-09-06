@@ -9,7 +9,7 @@ module RubySlackBot
   # Main entry point for the Ruby Slack Bot
   class << self
     def start(_args)
-      client = RubySlackBot::Client.new(ENV['SLACK_BOT_TOKEN'], ENV['SLACK_APP_TOKEN'])
+      client = RubySlackBot::Client.new(ENV.fetch('SLACK_BOT_TOKEN', nil), ENV.fetch('SLACK_APP_TOKEN', nil))
       client.run
     end
   end

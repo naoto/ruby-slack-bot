@@ -1,4 +1,7 @@
 # Available cops (576) + config for /home/naoto/service/ruby-slack-bot: 
+AllCops:
+  NewCops: enable
+
 # Department 'Bundler' (7):
 Bundler/DuplicatedGem:
   Description: Checks for duplicate gem entries in Gemfile.
@@ -126,7 +129,7 @@ Gemspec/DeprecatedAttributeAssignment:
 Gemspec/DevelopmentDependencies:
   Description: Checks that development dependencies are specified in Gemfile rather
     than gemspec.
-  Enabled: pending
+  Enabled: false
   VersionAdded: '1.44'
   EnforcedStyle: Gemfile
   SupportedStyles:
@@ -1114,7 +1117,6 @@ Layout/SpaceInsideBlockBraces:
   SupportedStylesForEmptyBraces:
   - space
   - no_space
-  SpaceBeforeBlockParameters: true
 
 # Supports --autocorrect
 Layout/SpaceInsideHashLiteralBraces:
@@ -1527,7 +1529,6 @@ Lint/EmptyConditionalBody:
     a body.
   Enabled: true
   AutoCorrect: contextual
-  SafeAutoCorrect: false
   AllowComments: true
   VersionAdded: '0.89'
   VersionChanged: '1.61'
@@ -1911,7 +1912,6 @@ Lint/RedundantRegexpQuantifiers:
 Lint/RedundantRequireStatement:
   Description: Checks for unnecessary `require` statement.
   Enabled: true
-  SafeAutoCorrect: false
   VersionAdded: '0.76'
   VersionChanged: '1.57'
 
@@ -2358,6 +2358,8 @@ Metrics/AbcSize:
   AllowedPatterns: []
   CountRepeatedAttributes: true
   Max: 25
+  Exclude:
+    - 'lib/plugin/ollama/ollama.rb'
 
 Metrics/BlockLength:
   Description: Avoid long blocks with many lines.
@@ -2392,6 +2394,12 @@ Metrics/ClassLength:
   CountComments: false
   Max: 100
   CountAsOne: []
+  Exclude:
+    - 'lib/bot/client.rb'
+    - 'lib/plugin/chatgpt_summary.rb'
+    - 'lib/plugin/illust/stable_diffusion.rb'
+    - 'lib/plugin/illust/command_handler.rb'
+    - 'lib/plugin/illust_fav.rb'
 
 Metrics/CollectionLiteralLength:
   Description: Checks for `Array` or `Hash` literals with many entries.
@@ -2420,6 +2428,8 @@ Metrics/MethodLength:
   CountAsOne: []
   AllowedMethods: []
   AllowedPatterns: []
+  Exclude:
+    - 'lib/plugin/illust/stable_diffusion.rb'
 
 Metrics/ModuleLength:
   Description: Avoid modules longer than 100 lines of code.
@@ -2678,7 +2688,7 @@ Naming/MethodParameterName:
   - to
   ForbiddenNames: []
 
-Naming/PredicateName:
+Naming/PredicatePrefix:
   Description: Check the names of predicate methods.
   StyleGuide: "#bool-methods-qmark"
   Enabled: true
@@ -2864,7 +2874,6 @@ Style/ArgumentsForwarding:
   Description: Use arguments forwarding.
   StyleGuide: "#arguments-forwarding"
   Enabled: pending
-  AllowOnlyRestArgument: true
   UseAnonymousForwarding: true
   RedundantRestArgumentNames:
   - args
@@ -5364,8 +5373,6 @@ Style/WordArray:
   SupportedStyles:
   - percent
   - brackets
-  MinSize: 2
-  WordRegex: !ruby/regexp /\A(?:\p{Word}|\p{Word}-\p{Word}|\n|\t)+\z/
 
 # Supports --autocorrect
 Style/YAMLFileRead:

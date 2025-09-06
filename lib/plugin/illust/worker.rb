@@ -35,8 +35,8 @@ class IllustWorker
     return unless url
 
     send_response(job, url)
-  rescue => e
-    handle_generation_error(e, job, "イラストの生成に失敗しました")
+  rescue StandardError => e
+    handle_generation_error(e, job, 'イラストの生成に失敗しました')
   end
 
   def generate_image_for_job(job)
@@ -65,12 +65,12 @@ class IllustWorker
   def build_response_blocks(url, prompt, org_prompt)
     [
       {
-        type: "image",
+        type: 'image',
         title: {
-          type: "plain_text",
+          type: 'plain_text',
           text: org_prompt
         },
-        block_id: "image4",
+        block_id: 'image4',
         image_url: url,
         alt_text: prompt
       }

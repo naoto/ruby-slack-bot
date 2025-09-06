@@ -8,8 +8,8 @@ class ChatGPT < Plugin::Base
   MODEL = 'gpt-4o-mini'
 
   def initialize(options:, logger:)
-    super(options: options, logger: logger)
-    @chatgpt_api_key = ENV['CHATGPT_API_KEY']
+    super
+    @chatgpt_api_key = ENV.fetch('CHATGPT_API_KEY', nil)
   end
 
   def send_message(context, system_message)

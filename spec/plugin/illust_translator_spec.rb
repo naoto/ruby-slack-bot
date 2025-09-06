@@ -17,7 +17,7 @@ RSpec.describe IllustTranslator do
 
     it 'translates Japanese text to English' do
       result = translator.translate_to_english(japanese_text)
-      
+
       expect(result).to eq(expected_result)
       expect(chat_client).to have_received(:send_message).with(
         japanese_text,
@@ -36,7 +36,7 @@ RSpec.describe IllustTranslator do
 
     it 'translates English text to Japanese' do
       result = translator.translate_to_japanese(english_text)
-      
+
       expect(result).to eq(expected_result)
       expect(chat_client).to have_received(:send_message).with(
         english_text,
@@ -55,7 +55,7 @@ RSpec.describe IllustTranslator do
 
     it 'generates an artistic prompt for the word' do
       result = translator.generate_poem_prompt(word)
-      
+
       expect(result).to eq(expected_result)
       expect(chat_client).to have_received(:send_message).with(
         word,

@@ -6,7 +6,7 @@ require 'rest-client'
 # 犬の画像を表示する
 class Dog < Plugin::Base
   def initialize(options:, logger:)
-    super(options: options, logger: logger)
+    super
     set(/^dog$/i, '犬の画像を表示する') { |data:, matcher:| message(data, matcher) }
   end
 
@@ -19,14 +19,14 @@ class Dog < Plugin::Base
 
     blocks = [
       {
-        "type": 'image',
-        "title": {
-          "type": 'plain_text',
-          "text": 'dog!'
+        type: 'image',
+        title: {
+          type: 'plain_text',
+          text: 'dog!'
         },
-        "alt_text": 'dog!',
-        "block_id": 'image4',
-        "image_url": json['message']
+        alt_text: 'dog!',
+        block_id: 'image4',
+        image_url: json['message']
       }
     ]
     data.say(blocks:)

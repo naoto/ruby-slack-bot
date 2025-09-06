@@ -15,7 +15,7 @@ RSpec.describe IllustCommandHandler do
     allow(job_queue).to receive(:size).and_return(0)
     allow(job_queue).to receive(:contents).and_return([])
     allow(data).to receive(:say)
-    allow(data).to receive(:get_parent_url).and_return([nil, nil])
+    allow(data).to receive(:parent_url).and_return([nil, nil])
   end
 
   describe '#handle_japanese_illust' do
@@ -72,7 +72,7 @@ RSpec.describe IllustCommandHandler do
     let(:thread_ts) { 'thread123' }
 
     before do
-      allow(data).to receive(:get_parent_url).and_return([image_url, thread_ts])
+      allow(data).to receive(:parent_url).and_return([image_url, thread_ts])
       allow(translator).to receive(:translate_to_english).and_return(translated_prompt)
     end
 
@@ -93,7 +93,7 @@ RSpec.describe IllustCommandHandler do
 
     context 'when no parent image exists' do
       before do
-        allow(data).to receive(:get_parent_url).and_return([nil, nil])
+        allow(data).to receive(:parent_url).and_return([nil, nil])
         allow(data).to receive(:thread_ts).and_return('current_thread')
         allow(data).to receive(:ts).and_return('current_ts')
       end
@@ -102,7 +102,7 @@ RSpec.describe IllustCommandHandler do
         handler.handle_img2img(data, prompt)
 
         expect(data).to have_received(:say).with(
-          text: "元画像のURLが取得できません。スレッド内で実行してください。",
+          text: '元画像のURLが取得できません。スレッド内で実行してください。',
           thread_ts: 'current_thread'
         )
       end
@@ -112,7 +112,7 @@ RSpec.describe IllustCommandHandler do
   describe '#handle_queue_status' do
     before do
       allow(job_queue).to receive(:size).and_return(3)
-      allow(job_queue).to receive(:contents).and_return(['job1', 'job2', 'job3'])
+      allow(job_queue).to receive(:contents).and_return(%w[job1 job2 job3])
     end
 
     it 'reports the current queue status' do

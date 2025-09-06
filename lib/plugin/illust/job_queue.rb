@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
-require 'thread'
-
 class IllustJobQueue
-  attr_reader :size
-
   def initialize(max_size:, logger:)
     @queue = SizedQueue.new(max_size)
     @logger = logger
@@ -18,7 +14,7 @@ class IllustJobQueue
     @mutex.synchronize { @contents << job }
     true
   rescue ThreadError
-    @logger.warn "Queue is full, rejecting job"
+    @logger.warn 'Queue is full, rejecting job'
     false
   end
 

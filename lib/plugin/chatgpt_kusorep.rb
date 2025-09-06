@@ -4,7 +4,7 @@ require_relative 'chatgpt/chatgpt'
 
 class ChatGPTKusorep < ChatGPT
   def initialize(options:, logger:)
-    super(options: options, logger: logger)
+    super
 
     reaction_set('kusorep', 'ChatGPTにクソリプを作成させる') { |data:, reaction:| kusorep_create(data, reaction) }
   end

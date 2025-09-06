@@ -65,39 +65,65 @@ module RubySlackBot
       messages
     end
 
-    def get_parent_url
-      return nil, nil if thread_ts.nil?
+    def parent_url
+      return [nil, nil] if thread_ts.nil?
+
+      messages = fetch_thread_messages
+      return [nil, nil] if messages.nil? || messages.empty?
+
+      extract_url_from_messages(messages)
+    rescue StandardError => e
+      @logger.error "Error fetching parent URL: #{e.message}"
+      [nil, nil]
+    end
+
+    private
+
+    def fetch_thread_messages
       thread = conversations_history(
         channel: channel, oldest: thread_ts, latest: thread_ts, inclusive: 1
       )
 
       messages = thread[:messages]
       @logger.info "Thread messages: #{messages}"
-      
-      if messages.nil? || messages.empty?
-        @logger.warn 'No messages found in thread.'
-        group_history = conversations_replies(
-          channel: channel, ts: thread_ts
-        )
-        messages = group_history[:messages]
-        @logger.info "Group history messages: #{messages}"
-      end
 
-      if messages && !messages.empty? && !messages.first[:blocks].first.nil?
-        return messages.first[:blocks].first[:image_url], thread_ts
-      end
+      return messages unless messages.nil? || messages.empty?
 
-      text = messages.first[:text]
-      url_match = text.match(/https?:\/\/[^\s?]+(?:\?[^\s]*)?/)
-      if url_match
-        return url_match[0], thread_ts
-      end
+      @logger.warn 'No messages found in thread.'
+      group_history = conversations_replies(
+        channel: channel, ts: thread_ts
+      )
+      messages = group_history[:messages]
+      @logger.info "Group history messages: #{messages}"
 
-      @logger.warn 'No messages found in group history.'
-      return nil, nil
-    rescue StandardError => e
-      @logger.error "Error fetching parent URL: #{e.message}"
-      return nil, nil
+      messages
+    end
+
+    def extract_url_from_messages(messages)
+      return [nil, nil] if messages.empty?
+
+      first_message = messages.first
+
+      # Check for image URL in blocks
+      return [first_message[:blocks].first[:image_url], thread_ts] if image_block?(first_message)
+
+      # Extract URL from text
+      url = extract_url_from_text(first_message[:text])
+      return [url, thread_ts] if url
+
+      @logger.warn 'No URL found in messages.'
+      [nil, nil]
+    end
+
+    def image_block?(message)
+      message&.dig(:blocks, 0, :image_url)
+    end
+
+    def extract_url_from_text(text)
+      return nil unless text
+
+      url_match = text.match(%r{https?://[^\s?]+(?:\?[^\s]*)?})
+      url_match&.[](0)
     end
   end
 end
