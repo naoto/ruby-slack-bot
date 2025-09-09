@@ -2,6 +2,7 @@
 
 require 'rest-client'
 require 'json'
+require 'uri'
 
 # IllustFav Plugin
 # 画像にタグを付けて管理する
@@ -239,7 +240,7 @@ class IllustFav < Plugin::Base
   # URL building methods
 
   def build_emoji_url(emoji)
-    "https://#{@illust_server}/#{emoji}.txt"
+    "https://#{@illust_server}/#{URI.encode_www_form_component(emoji)}.txt"
   end
 
   def build_tag_list_url
@@ -255,6 +256,6 @@ class IllustFav < Plugin::Base
   end
 
   def build_tag_deletion_url(emoji)
-    "https://#{@illust_server}/delete_tag/#{emoji}"
+    "https://#{@illust_server}/delete_tag/#{URI.encode_www_form_component(emoji)}"
   end
 end
