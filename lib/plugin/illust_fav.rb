@@ -108,7 +108,7 @@ class IllustFav < Plugin::Base
           @logger.warn "Failed to fetch image for emoji: #{emoji}, status code: #{resp.code}"
           return []
         end
-      rescue => e
+      rescue StandardError => e
         @logger.warn "Fetch image lists for emojis: #{e}"
         return []
       end

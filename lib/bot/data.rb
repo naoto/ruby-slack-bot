@@ -30,10 +30,6 @@ module RubySlackBot
       @data[:event][:thread_ts]
     end
 
-    def channel
-      @data[:event][:channel] || @data[:event][:item][:channel]
-    end
-
     def user
       @data[:event][:user]
     end
@@ -49,7 +45,7 @@ module RubySlackBot
       @logger.info "Fetching conversation history for params: #{params}"
 
       @client.call('conversations.history', params)
-    rescue => e
+    rescue StandardError => e
       @logger.error "Error fetching conversation history: #{e.message}"
       @logger.error e.backtrace.join("\n")
     end
