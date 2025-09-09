@@ -51,6 +51,7 @@ class IllustFav < Plugin::Base
 
     register_tag_for_image(image_url, reaction)
   rescue StandardError => e
+    @logger.error "Error in register_fav: #{e}"
     handle_error(e, data, 'register_fav')
   end
 
@@ -96,13 +97,18 @@ class IllustFav < Plugin::Base
 
     emojis.each do |emoji|
       @logger.info "Fetching image for emoji: #{emoji}"
-      resp = @http_client.get(build_emoji_url(emoji))
+      begin
+        resp = @http_client.get(build_emoji_url(emoji))
 
-      if resp.code == 200
-        lines = parse_image_list(resp.body)
-        line_sets << lines
-      else
-        @logger.warn "Failed to fetch image for emoji: #{emoji}, status code: #{resp.code}"
+        if resp.code == 200
+          lines = parse_image_list(resp.body)
+          line_sets << lines
+        else
+          @logger.warn "Failed to fetch image for emoji: #{emoji}, status code: #{resp.code}"
+          return []
+        end
+      rescue => e
+        @logger.warn "Fetch image lists for emojis: #{e}"
         return []
       end
     end
@@ -135,11 +141,13 @@ class IllustFav < Plugin::Base
   end
 
   def extract_image_url_from_data(data)
+    @logger.info "extract_image_url_from_data: #{data.messages}"
     data.messages&.first&.dig(:blocks, 0, :image_url)
   end
 
   def register_tag_for_image(image_url, tag)
     payload = { file: image_url, tag: tag }
+    @logger.info "register_tag_for_image: #{payload}"
     res = @http_client.post(build_tag_registration_url, payload)
 
     if res.code == 200

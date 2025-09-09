@@ -132,12 +132,13 @@ module RubySlackBot
           matcher = keymap[:regex].match(event[:text])
           next unless matcher
 
-          Thread.new do
+          thread = Thread.new do
             keymap[:block].call(data: bot_data, matcher:)
           rescue StandardError => e
             @logger.error "Error in plugin #{ins.class} for regex #{keymap[:regex]}: #{e.message}"
             bot_data.say(text: "エラーが発生しました: #{e.message}")
-          end.tap(&:detach)
+          end
+          thread.detach
         end
       end
     end
@@ -157,12 +158,13 @@ module RubySlackBot
             next
           end
 
-          Thread.new do
+          thread = Thread.new do
             reactmap[:block].call(data: bot_data, reaction:)
           rescue StandardError => e
             @logger.error "Error in plugin #{ins.class} for reaction #{reaction}: #{e.message}"
             bot_data.say(text: "エラーが発生しました: #{e.message}")
-          end.tap(&:detach)
+          end
+          thread.detach
         end
       end
     end

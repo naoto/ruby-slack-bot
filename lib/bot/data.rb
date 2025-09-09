@@ -5,10 +5,13 @@ module RubySlackBot
   # Slackのイベントデータをラップして、プラグインに渡す
   # プラグインはこのクラスを通じて、メッセージのテキストや応答を処理する
   class Data
+    attr_reader :data
+
     def initialize(data = {}, client = nil)
       @data = data
       @client = client
       @logger = Logger.new($stdout, level: Logger::Severity::INFO)
+      @logger.info @data[:event]
     end
 
     def text
@@ -20,11 +23,19 @@ module RubySlackBot
     end
 
     def ts
-      @data[:event][:item][:ts]
+      @data[:event][:item][:ts] || @data[:event][:ts]
     end
 
     def thread_ts
       @data[:event][:thread_ts]
+    end
+
+    def channel
+      @data[:event][:channel] || @data[:event][:item][:channel]
+    end
+
+    def user
+      @data[:event][:user]
     end
 
     def say(**response)
@@ -38,6 +49,9 @@ module RubySlackBot
       @logger.info "Fetching conversation history for params: #{params}"
 
       @client.call('conversations.history', params)
+    rescue => e
+      @logger.error "Error fetching conversation history: #{e.message}"
+      @logger.error e.backtrace.join("\n")
     end
 
     def conversations_replies(**params)
