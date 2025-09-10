@@ -4,6 +4,7 @@ PATH
     ruby_slack_bot (0.0.1)
       base64
       dotenv
+      mini_magick
       nokogiri
       openai
       rest-client
@@ -30,6 +31,8 @@ GEM
       logger
       mime-types-data (~> 3.2025, >= 3.2025.0507)
     mime-types-data (3.2025.0805)
+    mini_magick (5.3.1)
+      logger
     mini_portile2 (2.8.9)
     netrc (0.11.0)
     nokogiri (1.18.9)

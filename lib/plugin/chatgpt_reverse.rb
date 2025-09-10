@@ -21,7 +21,7 @@ class ChatGPTReverse < ChatGPT
       { role: 'user', content: word }
     ]
 
-    response = data.chatgpt(messages)
+    response = chatgpt(messages)
     @logger.info "ChatGPT antonym response: #{response}"
 
     data.say(text: response)

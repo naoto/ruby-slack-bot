@@ -33,5 +33,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'openai'
   spec.add_dependency 'rest-client'
   spec.add_dependency 'tiktoken_ruby'
+  spec.add_dependency 'mini_magick'
   spec.metadata['rubygems_mfa_required'] = 'true'
 end

@@ -4,6 +4,8 @@ require 'json'
 require 'securerandom'
 require 'base64'
 require 'rest-client'
+require 'cgi'
+require 'mini_magick'
 
 class StableDiffusion
   def initialize(logger:)
@@ -85,12 +87,16 @@ class StableDiffusion
   end
 
   def generate_i2i(prompt:, url:)
-    response = RestClient.get(url)
+    @logger.info "Fetching image from URL: #{url}"
+    response = RestClient.get(CGI.unescapeHTML(url))
+    @logger.info "Fetched image from URL: #{url} with response code: #{response.code}"
     image_data = response.body
+    image_data = resize_image_keeping_aspect_ratio(image_data)
     b64image = Base64.strict_encode64(image_data)
 
     payload_json = img2img_payload(prompt: prompt, init_images: [b64image])
     payload_json = payload_json.to_json
+    @logger.info "Payload size: #{payload_json}"
 
     @logger.info "Sending img2img generation request with payload: #{payload_json}"
     response = RestClient::Request.execute(
@@ -107,6 +113,13 @@ class StableDiffusion
   end
 
   private
+
+  def resize_image_keeping_aspect_ratio(input_data)
+    image = MiniMagick::Image.read(input_data)
+    image.resize "512x512"
+    image.format "jpg"
+    image.to_blob
+  end
 
   def txt2img_defaults
     {
@@ -168,7 +181,7 @@ class StableDiffusion
       distilled_cfg_scale: 3.5,
       width: 512,
       height: 512,
-      denoising_strength: 0.75,
+      denoising_strength: 0.6,
       comments: {},
       init_images: nil,
       sampler_index: 'Euler a'
