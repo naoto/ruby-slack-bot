@@ -132,7 +132,7 @@ module RubySlackBot
     def extract_url_from_text(text)
       return nil unless text
 
-      url_match = text.match(%r{https?://[^\s<>?]+(?:\?[^\s<>]*)?})
+      url_match = text.match(%r{https?://[^\s<>\|?]+(?:\?[^\s<>\|]*)?})
       url_match&.[](0)
     end
   end
